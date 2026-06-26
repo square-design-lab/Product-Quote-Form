@@ -275,6 +275,13 @@ input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; }
 }
 .copy-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
 .copy-btn.copied { background: #22C55E; color: #fff; border-color: #22C55E; }
+.copy-btn.sidebar-copy {
+  background: var(--accent); color: var(--accent-contrast);
+  border: 1px solid var(--accent); padding: 5px 14px; font-size: 11px;
+  font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.15s;
+}
+.copy-btn.sidebar-copy:hover { background: var(--accent-hover); }
+.copy-btn.sidebar-copy.copied { background: #22C55E; border-color: #22C55E; }
 pre {
   margin: 0; padding: 16px; background: #282828; border-radius: 0 0 8px 8px;
   overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px;
@@ -315,7 +322,10 @@ pre {
 <div class="sidebar">
   <div class="sidebar-header">
     <h2><span class="brand-icon">✉</span> Product Enquiry</h2>
-    <span class="badge">v1.0</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="badge">v1.0</span>
+      <button class="copy-btn sidebar-copy" onclick="copyCode('code-full',this)">Copy Code</button>
+    </div>
   </div>
   <div class="sidebar-content">
 
@@ -595,26 +605,17 @@ pre {
     <div class="tab-panel" id="panel-code">
       <div class="code-area">
         <div class="code-note">
-          <strong>Installation:</strong> Paste the <strong>Header Code Injection</strong> snippet into
+          <strong>Installation:</strong> Copy the code below and paste it into
           <em>Settings → Advanced → Code Injection → Header</em>.
-          Paste the <strong>Footer Code Injection</strong> snippet into the Footer section.
           See the <strong>Setup Guide</strong> tab for full instructions.
         </div>
 
         <div class="code-block-wrap">
           <div class="code-block-header">
-            <span>Header Code Injection (Settings → Advanced → Code Injection)</span>
-            <button class="copy-btn" onclick="copyCode('code-header',this)">Copy</button>
+            <span>Code Injection (Settings → Advanced → Code Injection → Header)</span>
+            <button class="copy-btn" onclick="copyCode('code-full',this)">Copy</button>
           </div>
-          <pre id="code-header"></pre>
-        </div>
-
-        <div class="code-block-wrap">
-          <div class="code-block-header">
-            <span>Footer Code Injection</span>
-            <button class="copy-btn" onclick="copyCode('code-footer',this)">Copy</button>
-          </div>
-          <pre id="code-footer"></pre>
+          <pre id="code-full"></pre>
         </div>
       </div>
     </div>
@@ -652,24 +653,24 @@ pre {
         <div class="step">
           <div class="step-num">4</div>
           <div class="step-content">
-            <h4>Copy the Header Code</h4>
-            <p>Go to the <strong>Code Output</strong> tab, copy the <strong>Header Code Injection</strong> snippet, and paste it into <strong>Settings → Advanced → Code Injection → Header</strong> in your Squarespace admin.</p>
+            <h4>Copy the Code</h4>
+            <p>Go to the <strong>Code Output</strong> tab (or use the <strong>Copy Code</strong> button in the sidebar header), copy the full code snippet, and paste it into <strong>Settings → Advanced → Code Injection → Header</strong> in your Squarespace admin.</p>
           </div>
         </div>
 
         <div class="step">
           <div class="step-num">5</div>
           <div class="step-content">
-            <h4>Copy the Footer Code</h4>
-            <p>Copy the <strong>Footer Code Injection</strong> snippet and paste it into the <strong>Footer</strong> section of Code Injection.</p>
+            <h4>Tag Your Products (if using tag filtering)</h4>
+            <p>If tag filtering is enabled, go to each product you want to add enquiry functionality to and add the tag you configured (default: <code>enquiry</code>). Products without the tag will keep the normal purchase flow. Make sure the tag in Squarespace exactly matches the <code>Enquiry Tag</code> value in your config.</p>
           </div>
         </div>
 
         <div class="step">
           <div class="step-num">6</div>
           <div class="step-content">
-            <h4>Tag Your Products (if using tag filtering)</h4>
-            <p>If tag filtering is enabled, go to each product you want to add enquiry functionality to and add the tag you configured (default: <code>enquiry</code>). Products without the tag will keep the normal purchase flow.</p>
+            <h4>Checkout vs. Quote</h4>
+            <p><strong>Important:</strong> Squarespace uses a single cart for all products. If you're using this plugin to replace checkout with quotes, we recommend <strong>hiding the Checkout button</strong> (disable "Show native Checkout" in the sidebar). When tag filtering is enabled, only tagged products will appear in the quote form — but the native checkout would still process all cart items, which can cause confusion. For stores where some products are for purchase and others for quoting, consider using separate store pages.</p>
           </div>
         </div>
 
@@ -901,12 +902,9 @@ function generateCode() {
 
   let configStr = 'window.SDL_ENQUIRY_CONFIG = ' + JSON.stringify(cfg, null, 2) + ';';
 
-  const headerCode = '<script>\n' + configStr + '\n<\/script>';
+  const fullCode = '<script>\n' + configStr + '\n<\/script>\n\n<script src="https://cdn.jsdelivr.net/gh/square-design-lab/Product-Quote-Form@latest/enquiry.min.js"><\/script>\n<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/square-design-lab/Product-Quote-Form@latest/enquiry.min.css">';
 
-  const footerCode = '<script src="https://cdn.jsdelivr.net/gh/square-design-lab/Product-Quote-Form@latest/enquiry.min.js"><\/script>\n<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/square-design-lab/Product-Quote-Form@latest/enquiry.min.css">';
-
-  V('code-header').textContent = headerCode;
-  V('code-footer').textContent = footerCode;
+  V('code-full').textContent = fullCode;
 }
 
 function copyCode(id, btn) {
