@@ -128,19 +128,10 @@
 
   function productPageHasTag() {
     if (!cfg("filterByTag")) return true;
-    var body = document.body.className || "";
     var tag = slugify(cfg("enquiryTag"));
-    if (body.indexOf("tag-" + tag) !== -1) return true;
-    var jsonScripts = document.querySelectorAll("script[type='application/ld+json']");
-    for (var i = 0; i < jsonScripts.length; i++) {
-      try {
-        var d = JSON.parse(jsonScripts[i].textContent);
-        if (d.keywords) {
-          var kws = d.keywords.toLowerCase().split(",").map(function (t) { return t.trim(); });
-          if (kws.indexOf(cfg("enquiryTag").toLowerCase()) !== -1) return true;
-        }
-      } catch (e) { /* ignore */ }
-    }
+    var cls = "tag-" + tag;
+    if (document.querySelector(".product-detail." + cls)) return true;
+    if ((document.body.className || "").indexOf(cls) !== -1) return true;
     return false;
   }
 
