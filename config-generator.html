@@ -878,27 +878,25 @@ function generateCode() {
   fields.forEach(([key, def]) => {
     const val = getVal('cfg-' + key);
     if (typeof def === 'boolean') {
-      if (val !== def) cfg[key] = val;
+      cfg[key] = val;
     } else if (typeof def === 'number') {
       const n = parseInt(val, 10);
-      if (!isNaN(n) && n !== def) cfg[key] = n;
+      if (!isNaN(n)) cfg[key] = n;
     } else {
-      if (val !== def && val !== '') cfg[key] = val;
+      if (val !== '') cfg[key] = val;
     }
   });
 
-  // always include mode
-  cfg.mode = getVal('cfg-mode');
+  // remove empty optional strings
+  if (!cfg.excludeTag) delete cfg.excludeTag;
+  if (!cfg.btnRadius) delete cfg.btnRadius;
+  if (!cfg.btnFontSize) delete cfg.btnFontSize;
 
-  // always include addToCartLabel so users see it in the config
-  cfg.addToCartLabel = getVal('cfg-addToCartLabel') || 'Add to Quote';
-
-  // always include tag settings when filtering is enabled
-  if (getVal('cfg-filterByTag')) {
-    cfg.filterByTag = true;
-    cfg.enquiryTag = getVal('cfg-enquiryTag') || 'enquiry';
-    const exTag = getVal('cfg-excludeTag');
-    if (exTag) cfg.excludeTag = exTag;
+  // remove tag settings when filtering is disabled
+  if (!cfg.filterByTag) {
+    delete cfg.filterByTag;
+    delete cfg.enquiryTag;
+    delete cfg.excludeTag;
   }
 
   let configStr = 'window.SDL_ENQUIRY_CONFIG = ' + JSON.stringify(cfg, null, 2) + ';';
