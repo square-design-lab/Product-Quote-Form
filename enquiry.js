@@ -16,8 +16,6 @@
     singleEnquiryLabel: "Enquire Now",
     cartPageTitle: "Quote List",
 
-    showAddToCart: false,
-    showCheckout: false,
     hidePrice: false,
 
     filterByTag: false,
@@ -297,6 +295,56 @@
     }
   }
 
+  /* ── rename store-page buttons for single-product mode ────────────────── */
+  function setupStorePageEnquiryLinks() {
+    var btns = document.querySelectorAll(S.addToCartBtn);
+    log("Store page (single): found", btns.length, "add-to-cart buttons");
+
+    btns.forEach(function (btn) {
+      if (btn.closest(".sqs-product-quick-view-lightbox")) return;
+
+      if (cfg("filterByTag")) {
+        if (!shouldApplyToItem(btn)) {
+          log("Skipping button — product not tagged");
+          return;
+        }
+      }
+
+      var textSpan = btn.querySelector(".add-to-cart-text");
+      if (textSpan) {
+        textSpan.innerText = cfg("singleEnquiryLabel");
+      } else {
+        var inner = btn.querySelector(".sqs-add-to-cart-button-inner");
+        if (inner) inner.innerText = cfg("singleEnquiryLabel");
+      }
+
+      var listItem = btn.closest(S.productListItem);
+      if (listItem) {
+        var link = listItem.querySelector("a[href*='/p/']");
+        if (link) {
+          btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = link.href;
+          }, true);
+        }
+      }
+    });
+
+    if (cfg("hidePrice") && cfg("filterByTag")) {
+      document.querySelectorAll(S.productListItem).forEach(function (item) {
+        if (item.classList.contains("tag-" + slugify(cfg("enquiryTag")))) {
+          var prices = item.querySelectorAll(".product-price, .product-list-item-price");
+          prices.forEach(function (p) { p.style.display = "none"; });
+        }
+      });
+    } else if (cfg("hidePrice")) {
+      document.querySelectorAll(".product-price, .product-list-item-price").forEach(function (p) {
+        p.style.display = "none";
+      });
+    }
+  }
+
   /* ── single-product enquiry ───────────────────────────────────────────── */
   function setupSingleProductEnquiry() {
     if (!isProductPage()) return;
@@ -323,9 +371,7 @@
         openSingleEnquiryForm();
       });
 
-      if (!cfg("showAddToCart")) {
-        btn.style.display = "none";
-      }
+      btn.style.display = "none";
 
       var insertTarget = controlsRow.parentElement || controlsRow;
       insertTarget.insertBefore(enquiryBtn, controlsRow.nextSibling);
@@ -393,17 +439,15 @@
         cont.href = cfg("returnToShopLink");
       }
       var chk = document.querySelector(S.cartCheckoutBtn);
-      if (chk && !cfg("showCheckout")) chk.style.display = "none";
+      if (chk) chk.style.display = "none";
     });
 
     waitFor(S.cartFooter, function () {
       var footer = document.querySelector(S.cartFooter);
       if (footer.querySelector(".sdl-quote-btn")) return;
 
-      if (!cfg("showCheckout")) {
-        var existing = document.querySelector(S.cartCheckoutBtn);
-        if (existing) existing.style.display = "none";
-      }
+      var existing = document.querySelector(S.cartCheckoutBtn);
+      if (existing) existing.style.display = "none";
 
       var btn = document.createElement("button");
       btn.className = "sqs-editable-button sqs-button-element--primary cart-checkout-button sdl-quote-btn";
@@ -561,7 +605,12 @@
       });
     }
 
-    if (mode === "single-product" || mode === "both") {
+    if (mode === "single-product") {
+      if (isStorePage()) setupStorePageEnquiryLinks();
+      setupSingleProductEnquiry();
+    }
+
+    if (mode === "both") {
       setupSingleProductEnquiry();
     }
   }

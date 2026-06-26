@@ -322,10 +322,7 @@ pre {
 <div class="sidebar">
   <div class="sidebar-header">
     <h2><span class="brand-icon">✉</span> Product Enquiry</h2>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span class="badge">v1.0</span>
-      <button class="copy-btn sidebar-copy" onclick="copyCode('code-full',this)">Copy Code</button>
-    </div>
+    <span class="badge">v1.0</span>
   </div>
   <div class="sidebar-content">
 
@@ -380,16 +377,6 @@ pre {
     <div class="group open">
       <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Button Visibility</div>
       <div class="group-body">
-        <div class="toggle-row">
-          <label>Show native Add to Cart</label>
-          <input type="checkbox" id="cfg-showAddToCart" onchange="update()">
-        </div>
-        <p class="helper" style="margin-top:-6px;margin-bottom:12px">Keep the original Add to Cart alongside the Enquiry button on product pages.</p>
-        <div class="toggle-row" id="wrap-showCheckout">
-          <label>Show native Checkout</label>
-          <input type="checkbox" id="cfg-showCheckout" onchange="update()">
-        </div>
-        <p class="helper" style="margin-top:-6px;margin-bottom:12px">Keep the Checkout button alongside the Quote button on the cart page.</p>
         <div class="toggle-row">
           <label>Hide product prices</label>
           <input type="checkbox" id="cfg-hidePrice" onchange="update()">
@@ -528,10 +515,6 @@ pre {
           <input type="number" id="cfg-executionDelay" value="500" oninput="update()">
           <p class="helper">Delay before filling form data after lightbox opens. Increase if form fields aren't populated.</p>
         </div>
-        <div class="toggle-row">
-          <label>Debug Mode</label>
-          <input type="checkbox" id="cfg-debugMode" onchange="update()">
-        </div>
       </div>
     </div>
 
@@ -546,6 +529,7 @@ pre {
       <button class="tab-btn" onclick="switchTab('code',this)">Code Output</button>
       <button class="tab-btn" onclick="switchTab('guide',this)">Setup Guide</button>
     </div>
+    <button class="copy-btn sidebar-copy" onclick="copyCode('code-full',this)">Copy Code</button>
   </div>
   <div class="main-body">
 
@@ -669,8 +653,8 @@ pre {
         <div class="step">
           <div class="step-num">6</div>
           <div class="step-content">
-            <h4>Checkout vs. Quote</h4>
-            <p><strong>Important:</strong> Squarespace uses a single cart for all products. If you're using this plugin to replace checkout with quotes, we recommend <strong>hiding the Checkout button</strong> (disable "Show native Checkout" in the sidebar). When tag filtering is enabled, only tagged products will appear in the quote form — but the native checkout would still process all cart items, which can cause confusion. For stores where some products are for purchase and others for quoting, consider using separate store pages.</p>
+            <h4>How It Works</h4>
+            <p>This plugin automatically <strong>hides the native Add to Cart and Checkout buttons</strong> and replaces them with enquiry/quote buttons. Squarespace uses a single cart for all products, so hiding checkout prevents customers from accidentally purchasing items meant for quoting. When tag filtering is enabled, only tagged products will show enquiry buttons — untagged products keep the normal purchase flow.</p>
           </div>
         </div>
 
@@ -680,7 +664,7 @@ pre {
             <h4>Optional: Hide the Cart Field</h4>
             <p>To hide the auto-filled "Cart" textarea from the popup form, add this CSS to <strong>Design → Custom CSS</strong>:</p>
             <p><code>.lightbox-inner .field-list .form-item:has(label[for] .title:not(:empty)) { /* target the Cart field by its wrapper */ }</code></p>
-            <p>Or simply position it off-screen. The exact CSS depends on your form structure — enable <strong>Debug Mode</strong> to inspect elements.</p>
+            <p>Or simply position it off-screen. The exact CSS depends on your form structure.</p>
           </div>
         </div>
 
@@ -688,7 +672,7 @@ pre {
           <div class="step-num">8</div>
           <div class="step-content">
             <h4>Test & Go Live</h4>
-            <p>Visit a product page and click the Enquiry button (or add products to cart and test the quote form). Verify that the form popup shows the correct product details. Submit a test enquiry and check your email. Disable <strong>Debug Mode</strong> when you're satisfied.</p>
+            <p>Visit a product page and click the Enquiry button (or add products to cart and test the quote form). Verify that the form popup shows the correct product details. Submit a test enquiry and check your email.</p>
           </div>
         </div>
 
@@ -739,7 +723,6 @@ function update() {
   V('wrap-quoteBtnLabel').style.display = isCart ? '' : 'none';
   V('wrap-cartPageTitle').style.display = isCart ? '' : 'none';
   V('wrap-singleEnquiryLabel').style.display = isSingle ? '' : 'none';
-  V('wrap-showCheckout').style.display = isCart ? '' : 'none';
   V('wrap-emptyCart').style.display = isCart ? '' : 'none';
 
   const filterByTag = getVal('cfg-filterByTag');
@@ -757,8 +740,6 @@ function updatePreview(mode, isCart, isSingle) {
   const quoteBtnLabel = getVal('cfg-quoteBtnLabel') || 'Request Quote';
   const singleLabel = getVal('cfg-singleEnquiryLabel') || 'Enquire Now';
   const cartTitle = getVal('cfg-cartPageTitle') || 'Quote List';
-  const showAddToCart = getVal('cfg-showAddToCart');
-  const showCheckout = getVal('cfg-showCheckout');
   const hidePrice = getVal('cfg-hidePrice');
   const btnBg = getVal('cfg-btnBg');
   const btnColor = getVal('cfg-btnColor');
@@ -772,17 +753,18 @@ function updatePreview(mode, isCart, isSingle) {
   if (mode === 'quote-cart') {
     addBtn.style.display = '';
     addBtn.innerText = addToCartLabel;
+    addBtn.classList.remove('secondary');
+    addBtn.classList.add('primary');
     enquiryBtn.style.display = 'none';
   } else if (mode === 'single-product') {
-    addBtn.style.display = showAddToCart ? '' : 'none';
-    addBtn.innerText = 'Add to Cart';
-    addBtn.classList.remove('primary');
-    addBtn.classList.add('secondary');
+    addBtn.style.display = 'none';
     enquiryBtn.style.display = '';
     enquiryBtn.innerText = singleLabel;
   } else {
     addBtn.style.display = '';
     addBtn.innerText = addToCartLabel;
+    addBtn.classList.remove('secondary');
+    addBtn.classList.add('primary');
     enquiryBtn.style.display = '';
     enquiryBtn.innerText = singleLabel;
   }
@@ -793,7 +775,7 @@ function updatePreview(mode, isCart, isSingle) {
   // cart card
   V('card-cart').style.display = isCart ? '' : 'none';
   V('prev-cartHeader').innerText = cartTitle;
-  V('prev-checkoutBtn').style.display = showCheckout ? '' : 'none';
+  V('prev-checkoutBtn').style.display = 'none';
   V('prev-quoteBtn').innerText = quoteBtnLabel;
 
   // button styling
@@ -864,7 +846,7 @@ function generateCode() {
     ['mode','quote-cart'], ['cartIconType','cart'], ['fieldName','Cart'],
     ['addToCartLabel','Add to Quote'], ['quoteBtnLabel','Request Quote'],
     ['singleEnquiryLabel','Enquire Now'], ['cartPageTitle','Quote List'],
-    ['showAddToCart',false], ['showCheckout',false], ['hidePrice',false],
+    ['hidePrice',false],
     ['filterByTag',false], ['enquiryTag','enquiry'], ['excludeTag',''],
     ['emptyCartMessage','Your quote list is empty.'],
     ['returnToShopLabel','Continue browsing'], ['returnToShopLink','/products'],
@@ -873,7 +855,7 @@ function generateCode() {
     ['labelSku','SKU'], ['labelQty','Qty'], ['labelPrice','Price'],
     ['summaryText','Quote contains'],
     ['btnBg','#18181B'], ['btnColor','#FFFFFF'], ['btnRadius',''], ['btnFontSize',''],
-    ['executionDelay',500], ['debugMode',false]
+    ['executionDelay',500]
   ];
 
   fields.forEach(([key, def]) => {
