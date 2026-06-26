@@ -135,6 +135,35 @@
     return false;
   }
 
+  /* ── quote-item tracking (localStorage) ────────────────────────────── */
+  var STORE_KEY = "sdl_quote_items";
+
+  function getTrackedItems() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch (e) { return {}; }
+  }
+
+  function trackQuoteItem(productId, title) {
+    if (!productId && !title) return;
+    var items = getTrackedItems();
+    var key = productId || ("title:" + title);
+    items[key] = title || "";
+    localStorage.setItem(STORE_KEY, JSON.stringify(items));
+    log("Tracked quote item:", key, title);
+  }
+
+  function isTrackedQuoteItem(productId, title) {
+    if (!cfg("filterByTag")) return true;
+    var items = getTrackedItems();
+    if (productId && items[productId] !== undefined) return true;
+    if (title) {
+      var tracked = Object.values(items);
+      for (var i = 0; i < tracked.length; i++) {
+        if (tracked[i] && tracked[i].toLowerCase() === title.toLowerCase()) return true;
+      }
+    }
+    return false;
+  }
+
   function applyBtnStyle(btn) {
     if (cfg("btnBg")) btn.style.backgroundColor = cfg("btnBg");
     if (cfg("btnColor")) btn.style.color = cfg("btnColor");
@@ -209,6 +238,16 @@
         var inner = btn.querySelector(".sqs-add-to-cart-button-inner");
         if (inner) inner.innerText = cfg("addToCartLabel");
       }
+
+      if (cfg("filterByTag")) {
+        var listItem = btn.closest(S.productListItem);
+        if (listItem) {
+          var itemId = listItem.getAttribute("data-product-id") || listItem.getAttribute("data-item-id") || "";
+          var titleEl = listItem.querySelector(".product-list-item-title, .product-list-title");
+          var title = titleEl ? titleEl.textContent.trim() : "";
+          btn.addEventListener("click", function () { trackQuoteItem(itemId, title); });
+        }
+      }
     });
 
     if (cfg("hidePrice") && cfg("filterByTag")) {
@@ -241,6 +280,13 @@
       } else {
         var inner = btn.querySelector(".sqs-add-to-cart-button-inner");
         if (inner) inner.innerText = cfg("addToCartLabel");
+      }
+
+      if (cfg("filterByTag")) {
+        var detail = document.querySelector(".product-detail");
+        var itemId = detail ? (detail.getAttribute("data-product-id") || detail.getAttribute("data-item-id") || "") : "";
+        var title = getProductTitle();
+        btn.addEventListener("click", function () { trackQuoteItem(itemId, title); });
       }
     });
 
@@ -384,6 +430,14 @@
     var area = findFormTextarea();
     if (!area) return;
 
+    if (cfg("filterByTag")) {
+      fillCartDataFiltered(area);
+    } else {
+      fillCartDataAll(area);
+    }
+  }
+
+  function fillCartDataAll(area) {
     var rows = document.querySelectorAll(S.cartRow);
     var data = "";
     var total = 0;
@@ -407,6 +461,45 @@
     });
 
     data += "\n" + cfg("summaryText") + ": " + total + " item" + (total !== 1 ? "s" : "") + ".\n";
+    triggerReact(area, data);
+  }
+
+  function fillCartDataFiltered(area) {
+    var rows = document.querySelectorAll(S.cartRow);
+    var data = "";
+    var total = 0;
+    var itemNum = 0;
+
+    rows.forEach(function (row) {
+      var title = (row.querySelector(S.cartTitle) || {}).innerText || "Unknown";
+
+      if (!isTrackedQuoteItem("", title)) {
+        log("Cart: skipping non-quote item:", title);
+        return;
+      }
+
+      var qty = (row.querySelector(S.cartQty) || {}).value || "1";
+      var variants = Array.from(row.querySelectorAll(S.cartVariant)).map(function (v) { return v.innerText; }).join(", ");
+      var price = (row.querySelector(S.cartPrice) || {}).innerText || "";
+      var skuEl = row.querySelector(".cart-row-sku");
+      var sku = skuEl ? skuEl.innerText : "";
+
+      total += parseInt(qty, 10);
+      itemNum++;
+
+      data += cfg("labelItem") + " " + itemNum + ": " + title + "\n";
+      if (sku) data += cfg("labelSku") + ": " + sku + "\n";
+      if (variants) data += cfg("labelVariant") + ": " + variants + "\n";
+      data += cfg("labelQty") + ": " + qty + "\n";
+      if (cfg("includePrices") && price) data += cfg("labelPrice") + ": " + price + "\n";
+      data += "----------------------\n";
+    });
+
+    if (itemNum === 0) {
+      data = "No quote items in cart.\n";
+    } else {
+      data += "\n" + cfg("summaryText") + ": " + total + " item" + (total !== 1 ? "s" : "") + ".\n";
+    }
     triggerReact(area, data);
   }
 
