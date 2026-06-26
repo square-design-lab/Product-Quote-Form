@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SDL Product Enquiry — Config Generator</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg-body: #F5F5F7;
+  --bg-sidebar: #FFFFFF;
+  --text-main: #1C1C1E;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --border-light: #E5E5E5;
+  --border-hover: #D4D4D4;
+  --border-active: #18181B;
+  --accent: #18181B;
+  --accent-hover: #09090B;
+  --accent-contrast: #FFFFFF;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+  --shadow-lg: 0 20px 40px -12px rgba(0,0,0,0.18);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --sidebar-width: 400px;
+  --header-height: 60px;
+}
+
+* { box-sizing: border-box; outline: none; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-body);
+  color: var(--text-main);
+  margin: 0; padding: 0;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+  flex-shrink: 0;
+}
+.sidebar-header {
+  height: var(--header-height);
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+.sidebar-header h2 {
+  font-size: 15px; font-weight: 700; margin: 0;
+  display: flex; align-items: center; gap: 10px; letter-spacing: -0.02em;
+}
+.brand-icon {
+  width: 30px; height: 30px; background: var(--accent); color: #fff;
+  border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-size: 15px;
+}
+.sidebar-header .badge {
+  font-size: 10px; background: #F4F4F5; padding: 2px 7px; border-radius: 4px;
+  color: #52525B; font-weight: 600; border: 1px solid #D4D4D8;
+}
+.sidebar-content { flex: 1; overflow-y: auto; padding: 24px; }
+.sidebar-content::-webkit-scrollbar { width: 6px; }
+.sidebar-content::-webkit-scrollbar-thumb { background: #E5E5E5; border-radius: 3px; }
+.sidebar-content::-webkit-scrollbar-thumb:hover { background: #D4D4D4; }
+
+/* ── GROUPS ──────────────────────────────────────────────────────────── */
+.group { margin-bottom: 24px; }
+.group-header {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); margin-bottom: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; transition: color 0.2s;
+  user-select: none;
+}
+.group-header:hover { color: var(--text-main); }
+.group-header::after {
+  content: ''; width: 6px; height: 6px;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg); transition: transform 0.2s; margin-right: 4px;
+}
+.group.open .group-header::after { transform: rotate(-135deg); }
+.group-body { display: none; }
+.group.open .group-body { display: block; animation: slideIn 0.2s ease-out; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── CONTROLS ────────────────────────────────────────────────────────── */
+.control-row { margin-bottom: 16px; }
+label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-main); }
+.helper { font-size: 11px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4; }
+
+input[type="text"], input[type="number"], select {
+  width: 100%; height: 36px; padding: 0 10px;
+  font-family: inherit; font-size: 13px;
+  border: 1px solid var(--border-light); border-radius: var(--radius-sm);
+  background: #fff; color: var(--text-main); transition: all 0.15s; appearance: none;
+}
+input:hover, select:hover { border-color: var(--border-hover); }
+input:focus, select:focus { border-color: var(--border-active); box-shadow: 0 0 0 3px rgba(0,0,0,0.08); }
+select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat; background-position: right 8px center; background-size: 14px; padding-right: 30px;
+}
+
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; min-height: 24px;
+}
+.toggle-row label { margin: 0; font-weight: 400; color: var(--text-secondary); }
+input[type="checkbox"] {
+  appearance: none; width: 36px; height: 20px; background: #E5E5E5; border-radius: 20px;
+  position: relative; cursor: pointer; transition: 0.2s; border: none; flex-shrink: 0;
+}
+input[type="checkbox"]::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+  background: #fff; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  transition: 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+input[type="checkbox"]:checked { background: var(--accent); }
+input[type="checkbox"]:checked::after { transform: translateX(16px); }
+
+input[type="color"] {
+  width: 28px; height: 28px; padding: 0;
+  border: 1.5px solid #B8B8B8; border-radius: 50%; overflow: hidden; cursor: pointer; background: none;
+}
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; }
+
+.color-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.color-row .color-label { font-size: 12px; font-weight: 500; }
+
+.conditional { display: none; }
+.conditional.visible { display: block; animation: slideIn 0.15s ease-out; }
+
+/* ── MAIN AREA ───────────────────────────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.main-header {
+  height: var(--header-height);
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+.tab-bar { display: flex; gap: 4px; }
+.tab-btn {
+  padding: 6px 16px; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border-light); border-radius: 6px;
+  background: #fff; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s;
+}
+.tab-btn:hover { border-color: var(--border-hover); color: var(--text-main); }
+.tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.main-body { flex: 1; overflow: auto; position: relative; }
+.tab-panel { display: none; height: 100%; }
+.tab-panel.active { display: flex; flex-direction: column; }
+
+/* ── PREVIEW ─────────────────────────────────────────────────────────── */
+.preview-area {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 40px; background: #FAFAFA;
+}
+.preview-split {
+  display: flex; gap: 30px; align-items: flex-start; max-width: 900px; width: 100%;
+  flex-wrap: wrap; justify-content: center;
+}
+.preview-split .preview-card { min-width: 320px; max-width: 400px; }
+.preview-card {
+  background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md); overflow: hidden; flex: 1; min-width: 0;
+}
+.preview-card-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border-light);
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-tertiary); background: #FAFAFA;
+}
+.preview-card-body { padding: 20px; }
+
+/* mock product */
+.mock-product { display: flex; gap: 16px; }
+.mock-product-img {
+  width: 90px; height: 90px; background: #F0F0F0; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; color: #CCC; font-size: 28px;
+}
+.mock-product-info { flex: 1; min-width: 0; }
+.mock-product-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.mock-product-price { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; }
+.mock-product-price.hidden-price { display: none; }
+.mock-product-variant { font-size: 12px; color: var(--text-tertiary); margin-bottom: 12px; }
+.mock-btn {
+  display: block; width: 100%; padding: 10px 8px; border: none; cursor: default;
+  font-family: inherit; font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .03em; text-align: center; border-radius: 4px; margin-bottom: 6px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mock-btn.primary { background: #18181B; color: #fff; }
+.mock-btn.secondary { background: #F4F4F5; color: #18181B; border: 1px solid #E5E5E5; }
+.mock-btn.hidden-btn { display: none; }
+
+/* mock cart */
+.mock-cart-row {
+  display: flex; align-items: center; gap: 12px; padding: 12px 0;
+  border-bottom: 1px solid #F0F0F0;
+}
+.mock-cart-thumb {
+  width: 50px; height: 50px; background: #F0F0F0; border-radius: 6px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; color: #CCC; font-size: 18px;
+}
+.mock-cart-details { flex: 1; }
+.mock-cart-name { font-size: 13px; font-weight: 600; }
+.mock-cart-variant { font-size: 11px; color: var(--text-tertiary); }
+.mock-cart-qty { font-size: 12px; color: var(--text-secondary); }
+.mock-cart-footer { padding-top: 16px; }
+
+/* mock popup */
+.mock-popup-overlay {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.mock-popup-overlay.show { display: flex; }
+.mock-popup {
+  background: #fff; border-radius: 12px; padding: 28px; width: 420px; max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.mock-popup h3 { margin: 0 0 16px; font-size: 16px; }
+.mock-popup .field { margin-bottom: 12px; }
+.mock-popup .field label { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+.mock-popup .field input, .mock-popup .field textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid #E5E5E5; border-radius: 6px;
+  font-family: inherit; font-size: 12px; resize: none;
+}
+.mock-popup .field textarea { height: 100px; }
+.mock-popup-close {
+  position: absolute; top: 12px; right: 16px; background: none; border: none;
+  font-size: 20px; cursor: pointer; color: #999;
+}
+
+/* ── CODE OUTPUT ─────────────────────────────────────────────────────── */
+.code-area { flex: 1; padding: 24px; overflow: auto; }
+.code-block-wrap { margin-bottom: 24px; }
+.code-block-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: #1E1E1E; border-radius: 8px 8px 0 0;
+  font-size: 12px; color: #A0A0A0;
+}
+.copy-btn {
+  padding: 4px 12px; font-size: 11px; font-weight: 500;
+  background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px; cursor: pointer; transition: all 0.15s;
+}
+.copy-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.copy-btn.copied { background: #22C55E; color: #fff; border-color: #22C55E; }
+pre {
+  margin: 0; padding: 16px; background: #282828; border-radius: 0 0 8px 8px;
+  overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  line-height: 1.6; color: #E0E0E0; white-space: pre-wrap; word-break: break-all;
+}
+.code-note {
+  background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px;
+  padding: 12px 16px; font-size: 12px; line-height: 1.5; color: #92400E; margin-bottom: 20px;
+}
+.code-note strong { color: #78350F; }
+
+/* ── SETUP GUIDE ─────────────────────────────────────────────────────── */
+.guide-area { flex: 1; padding: 32px 40px; overflow: auto; max-width: 720px; margin: 0 auto; }
+.guide-area h3 { font-size: 18px; font-weight: 700; margin: 0 0 8px; }
+.guide-area .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; }
+.step {
+  display: flex; gap: 16px; margin-bottom: 28px; padding-bottom: 28px;
+  border-bottom: 1px solid var(--border-light);
+}
+.step:last-child { border-bottom: none; }
+.step-num {
+  width: 32px; height: 32px; background: var(--accent); color: #fff;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.step-content { flex: 1; }
+.step-content h4 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+.step-content p { margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.step-content code {
+  background: #F4F4F5; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: #18181B;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h2><span class="brand-icon">✉</span> Product Enquiry</h2>
+    <span class="badge">v1.0</span>
+  </div>
+  <div class="sidebar-content">
+
+    <!-- MODE -->
+    <div class="group open">
+      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Plugin Mode</div>
+      <div class="group-body">
+        <div class="control-row">
+          <label>Enquiry Mode</label>
+          <select id="cfg-mode" onchange="update()">
+            <option value="quote-cart">Quote Cart (multi-product)</option>
+            <option value="single-product">Single Product Enquiry</option>
+            <option value="both">Both (Cart + Single Product)</option>
+          </select>
+          <p class="helper"><strong>Quote Cart</strong> — replaces checkout with a quote form. <strong>Single Product</strong> — adds enquiry button per product page. <strong>Both</strong> — enables both features.</p>
+        </div>
+        <div class="control-row">
+          <label>Cart Icon</label>
+          <select id="cfg-cartIconType" onchange="update()">
+            <option value="cart">Cart (default)</option>
+            <option value="heart">Heart / Wishlist</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUTTON LABELS -->
+    <div class="group open">
+      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Button Labels</div>
+      <div class="group-body">
+        <div class="control-row" id="wrap-addToCartLabel">
+          <label>Add to Cart Label</label>
+          <input type="text" id="cfg-addToCartLabel" value="Add to Quote" oninput="update()">
+          <p class="helper">Replaces the native "Add to Cart" button text on product pages.</p>
+        </div>
+        <div class="control-row" id="wrap-quoteBtnLabel">
+          <label>Cart Page Quote Button</label>
+          <input type="text" id="cfg-quoteBtnLabel" value="Request Quote" oninput="update()">
+        </div>
+        <div class="control-row" id="wrap-singleEnquiryLabel">
+          <label>Single Product Enquiry Button</label>
+          <input type="text" id="cfg-singleEnquiryLabel" value="Enquire Now" oninput="update()">
+        </div>
+        <div class="control-row" id="wrap-cartPageTitle">
+          <label>Cart Page Title</label>
+          <input type="text" id="cfg-cartPageTitle" value="Quote List" oninput="update()">
+        </div>
+      </div>
+    </div>
+
+    <!-- BUTTON VISIBILITY -->
+    <div class="group open">
+      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Button Visibility</div>
+      <div class="group-body">
+        <div class="toggle-row">
+          <label>Show native Add to Cart</label>
+          <input type="checkbox" id="cfg-showAddToCart" onchange="update()">
+        </div>
+        <p class="helper" style="margin-top:-6px;margin-bottom:12px">Keep the original Add to Cart alongside the Enquiry button on product pages.</p>
+        <div class="toggle-row" id="wrap-showCheckout">
+          <label>Show native Checkout</label>
+          <input type="checkbox" id="cfg-showCheckout" onchange="update()">
+        </div>
+        <p class="helper" style="margin-top:-6px;margin-bottom:12px">Keep the Checkout button alongside the Quote button on the cart page.</p>
+        <div class="toggle-row">
+          <label>Hide product prices</label>
+          <input type="checkbox" id="cfg-hidePrice" onchange="update()">
+        </div>
+        <p class="helper" style="margin-top:-6px;margin-bottom:12px">Hide prices on product pages — ideal for "Price on Request" use cases.</p>
+      </div>
+    </div>
+
+    <!-- TAG FILTERING -->
+    <div class="group">
+      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Tag Filtering</div>
+      <div class="group-body">
+        <div class="toggle-row">
+          <label>Enable tag filtering</label>
+          <input type="checkbox" id="cfg-filterByTag" onchange="update()">
+        </div>
+        <p class="helper" style="margin-top:-6px;margin-bottom:12px">Only apply enquiry to products with a specific tag. Leave unchecked to apply to all products.</p>
+        <div class="conditional" id="tag-options">
+          <div class="control-row">
+            <label>Enquiry Tag</label>
+            <input type="text" id="cfg-enquiryTag" value="enquiry" oninput="update()">
+            <p class="helper">Products with this tag will show the Enquiry button.</p>
+          </div>
+          <div class="control-row">
+            <label>Exclude Tag (optional)</label>
+            <input type="text" id="cfg-excludeTag" value="" oninput="update()">
+            <p class="helper">Products with this tag will always keep the normal buy flow.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM SETTINGS -->
+    <div class="group">
+      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Form Settings</div>
+      <div class="group-body">
+        <div class="control-row">
+          <label>Form Field Label</label>
+          <input type="text" id="cfg-fieldName" value="Cart" oninput="update()">
+          <p class="helper">Must match the label of the textarea field in your footer lightbox form.</p>
+        </div>
+        <div class="toggle-row">
+          <label>Include prices in form data</label>
+          <input type="checkbox" id="cfg-includePrices" onchange="update()">
+        </div>
+        <div class="toggle-row">
+          <label>Include product URL</label>
+          <input type="checkbox" id="cfg-includeProductUrl" checked onchange="update()">
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPTY CART -->
+    <div class="group" id="wrap-emptyCart">
+      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Empty Cart Messages</div>
+      <div class="group-body">
+        <div class="control-row">
+          <label>Empty Message</label>
+          <input type="text" id="cfg-emptyCartMessage" value="Your quote list is empty." oninput="update()">
+        </div>
+        <div class="control-row">
+          <label>Continue Shopping Label</label>
+          <input type="text" id="cfg-returnToShopLabel" value="Continue browsing" oninput="update()">
+        </div>
+        <div class="control-row">
+          <label>Continue Shopping Link</label>
+          <input type="text" id="cfg-returnToShopLink" value="/products" oninput="update()">
+        </div>
+      </div>
+    </div>
+
+    <!-- EMAIL LABELS -->
+    <div class="group">
+      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Email Format Labels</div>
+      <div class="group-body">
+        <div class="control-row">
+          <label>Item Label</label>
+          <input type="text" id="cfg-labelItem" value="Item" oninput="update()">
+        </div>
+        <div class="control-row">
+          <label>Title Label</label>
+          <input type="text" id="cfg-labelTitle" value="Title" oninput="update()">
+        </div>
+        <div class="control-row">
+          <label>Variant Label</label>
+          <input type="text" id="cfg-labelVariant" value="Variant(s)" oninput="update()">
+        </div>
+        <div class="control-row">
+          <label>SKU Label</label>
+          <input type="text" id="cfg-labelSku" value="SKU" oninput="update()">
+        </div>
+        <div class="control-row">
+          <label>Quantity Label</label>
+          <input type="text" id="cfg-labelQty" value="Qty" oninput="update()">
+        </div>
+        <div class="control-row">
+          <label>Price Label</label>
+          <input type="text" id="cfg-labelPrice" value="Price" oninput="update()">
+        </div>
+        <div class="control-row">
+          <label>Summary Text</label>
+          <input type="text" id="cfg-summaryText" value="Quote contains" oninput="update()">
+        </div>
+      </div>
+    </div>
+
+    <!-- BUTTON STYLE -->
+    <div class="group">
+      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Button Styling</div>
+      <div class="group-body">
+        <div class="color-row">
+          <span class="color-label">Background</span>
+          <input type="color" id="cfg-btnBg" value="#18181B" oninput="update()">
+        </div>
+        <div class="color-row">
+          <span class="color-label">Text Color</span>
+          <input type="color" id="cfg-btnColor" value="#FFFFFF" oninput="update()">
+        </div>
+        <div class="control-row">
+          <label>Border Radius</label>
+          <input type="text" id="cfg-btnRadius" value="" placeholder="e.g. 4px or 30px" oninput="update()">
+        </div>
+        <div class="control-row">
+          <label>Font Size</label>
+          <input type="text" id="cfg-btnFontSize" value="" placeholder="e.g. 14px" oninput="update()">
+        </div>
+      </div>
+    </div>
+
+    <!-- ADVANCED -->
+    <div class="group">
+      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Advanced</div>
+      <div class="group-body">
+        <div class="control-row">
+          <label>Execution Delay (ms)</label>
+          <input type="number" id="cfg-executionDelay" value="500" oninput="update()">
+          <p class="helper">Delay before filling form data after lightbox opens. Increase if form fields aren't populated.</p>
+        </div>
+        <div class="toggle-row">
+          <label>Debug Mode</label>
+          <input type="checkbox" id="cfg-debugMode" onchange="update()">
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+  <div class="main-header">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('preview',this)">Preview</button>
+      <button class="tab-btn" onclick="switchTab('code',this)">Code Output</button>
+      <button class="tab-btn" onclick="switchTab('guide',this)">Setup Guide</button>
+    </div>
+  </div>
+  <div class="main-body">
+
+    <!-- PREVIEW TAB -->
+    <div class="tab-panel active" id="panel-preview">
+      <div class="preview-area">
+        <div class="preview-split">
+
+          <!-- Product Page Mock -->
+          <div class="preview-card" id="card-product">
+            <div class="preview-card-header">Product Page</div>
+            <div class="preview-card-body">
+              <div class="mock-product">
+                <div class="mock-product-img">☐</div>
+                <div class="mock-product-info">
+                  <div class="mock-product-title">Sample Product</div>
+                  <div class="mock-product-price" id="prev-price">$149.00</div>
+                  <div class="mock-product-variant">Variant: Medium / Black</div>
+                  <button class="mock-btn primary" id="prev-addToCart">Add to Quote</button>
+                  <button class="mock-btn primary" id="prev-enquiryBtn" style="display:none">Enquire Now</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cart Page Mock -->
+          <div class="preview-card" id="card-cart">
+            <div class="preview-card-header" id="prev-cartHeader">Quote List</div>
+            <div class="preview-card-body">
+              <div class="mock-cart-row">
+                <div class="mock-cart-thumb">☐</div>
+                <div class="mock-cart-details">
+                  <div class="mock-cart-name">Sample Product</div>
+                  <div class="mock-cart-variant">Medium / Black</div>
+                  <div class="mock-cart-qty">Qty: 2</div>
+                </div>
+              </div>
+              <div class="mock-cart-row">
+                <div class="mock-cart-thumb">☐</div>
+                <div class="mock-cart-details">
+                  <div class="mock-cart-name">Another Item</div>
+                  <div class="mock-cart-variant">Large / White</div>
+                  <div class="mock-cart-qty">Qty: 1</div>
+                </div>
+              </div>
+              <div class="mock-cart-footer">
+                <button class="mock-btn secondary" id="prev-checkoutBtn">Checkout</button>
+                <button class="mock-btn primary" id="prev-quoteBtn">Request Quote</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CODE TAB -->
+    <div class="tab-panel" id="panel-code">
+      <div class="code-area">
+        <div class="code-note">
+          <strong>Installation:</strong> Paste the <strong>Header Code Injection</strong> snippet into
+          <em>Settings → Advanced → Code Injection → Header</em>.
+          Paste the <strong>Footer Code Injection</strong> snippet into the Footer section.
+          See the <strong>Setup Guide</strong> tab for full instructions.
+        </div>
+
+        <div class="code-block-wrap">
+          <div class="code-block-header">
+            <span>Header Code Injection (Settings → Advanced → Code Injection)</span>
+            <button class="copy-btn" onclick="copyCode('code-header',this)">Copy</button>
+          </div>
+          <pre id="code-header"></pre>
+        </div>
+
+        <div class="code-block-wrap">
+          <div class="code-block-header">
+            <span>Footer Code Injection</span>
+            <button class="copy-btn" onclick="copyCode('code-footer',this)">Copy</button>
+          </div>
+          <pre id="code-footer"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUIDE TAB -->
+    <div class="tab-panel" id="panel-guide">
+      <div class="guide-area">
+        <h3>Setup Guide</h3>
+        <p class="subtitle">Follow these steps to install the Product Enquiry plugin on your Squarespace site.</p>
+
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Create the Lightbox Form</h4>
+            <p>Go to your Squarespace site editor. Open the <strong>Footer</strong> section. Add a <strong>Form Block</strong> and set it to open as a <strong>Lightbox</strong>. Design the form with the fields you want (Name, Email, Phone, Message, etc.). Add one <strong>Textarea</strong> field and set its label to match the <code>Form Field Label</code> setting in the config (default: <code>Cart</code>). This field will be auto-filled with product/cart data. You may want to hide this field with CSS later.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Configure Form Storage</h4>
+            <p>Make sure the form is set to send submissions to your <strong>email</strong> (Form → Storage → Email). You'll receive product details directly in the email when customers submit enquiries.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Configure the Plugin</h4>
+            <p>Use the sidebar controls to configure your plugin settings. Choose your <strong>mode</strong> (Quote Cart, Single Product, or Both), set your <strong>button labels</strong>, and adjust visibility options. If you want to apply the enquiry only to specific products, enable <strong>Tag Filtering</strong> and add a tag like <code>enquiry</code> to those products.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Copy the Header Code</h4>
+            <p>Go to the <strong>Code Output</strong> tab, copy the <strong>Header Code Injection</strong> snippet, and paste it into <strong>Settings → Advanced → Code Injection → Header</strong> in your Squarespace admin.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <h4>Copy the Footer Code</h4>
+            <p>Copy the <strong>Footer Code Injection</strong> snippet and paste it into the <strong>Footer</strong> section of Code Injection.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <h4>Tag Your Products (if using tag filtering)</h4>
+            <p>If tag filtering is enabled, go to each product you want to add enquiry functionality to and add the tag you configured (default: <code>enquiry</code>). Products without the tag will keep the normal purchase flow.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">7</div>
+          <div class="step-content">
+            <h4>Optional: Hide the Cart Field</h4>
+            <p>To hide the auto-filled "Cart" textarea from the popup form, add this CSS to <strong>Design → Custom CSS</strong>:</p>
+            <p><code>.lightbox-inner .field-list .form-item:has(label[for] .title:not(:empty)) { /* target the Cart field by its wrapper */ }</code></p>
+            <p>Or simply position it off-screen. The exact CSS depends on your form structure — enable <strong>Debug Mode</strong> to inspect elements.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">8</div>
+          <div class="step-content">
+            <h4>Test & Go Live</h4>
+            <p>Visit a product page and click the Enquiry button (or add products to cart and test the quote form). Verify that the form popup shows the correct product details. Submit a test enquiry and check your email. Disable <strong>Debug Mode</strong> when you're satisfied.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- popup mock -->
+<div class="mock-popup-overlay" id="mockPopup" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="mock-popup" style="position:relative">
+    <button class="mock-popup-close" onclick="document.getElementById('mockPopup').classList.remove('show')">✕</button>
+    <h3>Enquiry Form</h3>
+    <div class="field"><label>Name</label><input type="text" placeholder="Your name" disabled></div>
+    <div class="field"><label>Email</label><input type="text" placeholder="you@example.com" disabled></div>
+    <div class="field"><label id="popup-field-label">Cart</label><textarea id="popup-field-value" disabled></textarea></div>
+    <button class="mock-btn primary" style="margin-top:12px">Submit Enquiry</button>
+  </div>
+</div>
+
+<script>
+const V = id => document.getElementById(id);
+const $ = sel => document.querySelector(sel);
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  V('panel-' + name).classList.add('active');
+}
+
+function getVal(id) {
+  const el = V(id);
+  if (!el) return '';
+  if (el.type === 'checkbox') return el.checked;
+  return el.value;
+}
+
+function update() {
+  const mode = getVal('cfg-mode');
+
+  // conditional visibility
+  const isCart = mode === 'quote-cart' || mode === 'both';
+  const isSingle = mode === 'single-product' || mode === 'both';
+
+  V('wrap-addToCartLabel').style.display = isCart ? '' : 'none';
+  V('wrap-quoteBtnLabel').style.display = isCart ? '' : 'none';
+  V('wrap-cartPageTitle').style.display = isCart ? '' : 'none';
+  V('wrap-singleEnquiryLabel').style.display = isSingle ? '' : 'none';
+  V('wrap-showCheckout').style.display = isCart ? '' : 'none';
+  V('wrap-emptyCart').style.display = isCart ? '' : 'none';
+
+  const filterByTag = getVal('cfg-filterByTag');
+  V('tag-options').classList.toggle('visible', filterByTag);
+
+  // preview updates
+  updatePreview(mode, isCart, isSingle);
+
+  // code output
+  generateCode();
+}
+
+function updatePreview(mode, isCart, isSingle) {
+  const addToCartLabel = getVal('cfg-addToCartLabel') || 'Add to Quote';
+  const quoteBtnLabel = getVal('cfg-quoteBtnLabel') || 'Request Quote';
+  const singleLabel = getVal('cfg-singleEnquiryLabel') || 'Enquire Now';
+  const cartTitle = getVal('cfg-cartPageTitle') || 'Quote List';
+  const showAddToCart = getVal('cfg-showAddToCart');
+  const showCheckout = getVal('cfg-showCheckout');
+  const hidePrice = getVal('cfg-hidePrice');
+  const btnBg = getVal('cfg-btnBg');
+  const btnColor = getVal('cfg-btnColor');
+  const btnRadius = getVal('cfg-btnRadius');
+  const btnFontSize = getVal('cfg-btnFontSize');
+
+  // product card
+  const addBtn = V('prev-addToCart');
+  const enquiryBtn = V('prev-enquiryBtn');
+
+  if (mode === 'quote-cart') {
+    addBtn.style.display = '';
+    addBtn.innerText = addToCartLabel;
+    enquiryBtn.style.display = 'none';
+  } else if (mode === 'single-product') {
+    addBtn.style.display = showAddToCart ? '' : 'none';
+    addBtn.innerText = 'Add to Cart';
+    addBtn.classList.remove('primary');
+    addBtn.classList.add('secondary');
+    enquiryBtn.style.display = '';
+    enquiryBtn.innerText = singleLabel;
+  } else {
+    addBtn.style.display = '';
+    addBtn.innerText = addToCartLabel;
+    enquiryBtn.style.display = '';
+    enquiryBtn.innerText = singleLabel;
+  }
+
+  // price
+  V('prev-price').classList.toggle('hidden-price', hidePrice);
+
+  // cart card
+  V('card-cart').style.display = isCart ? '' : 'none';
+  V('prev-cartHeader').innerText = cartTitle;
+  V('prev-checkoutBtn').style.display = showCheckout ? '' : 'none';
+  V('prev-quoteBtn').innerText = quoteBtnLabel;
+
+  // button styling
+  [V('prev-quoteBtn'), enquiryBtn].forEach(b => {
+    if (btnBg) b.style.backgroundColor = btnBg;
+    else b.style.backgroundColor = '';
+    if (btnColor) b.style.color = btnColor;
+    else b.style.color = '';
+    if (btnRadius) b.style.borderRadius = btnRadius;
+    else b.style.borderRadius = '';
+    if (btnFontSize) b.style.fontSize = btnFontSize;
+    else b.style.fontSize = '';
+  });
+
+  // wire up preview click for popup
+  enquiryBtn.onclick = () => showMockPopup('single');
+  V('prev-quoteBtn').onclick = () => showMockPopup('cart');
+}
+
+function showMockPopup(type) {
+  const fieldLabel = getVal('cfg-fieldName') || 'Cart';
+  V('popup-field-label').innerText = fieldLabel;
+
+  let val = '';
+  if (type === 'cart') {
+    const lItem = getVal('cfg-labelItem') || 'Item';
+    const lVariant = getVal('cfg-labelVariant') || 'Variant(s)';
+    const lQty = getVal('cfg-labelQty') || 'Qty';
+    const lSku = getVal('cfg-labelSku') || 'SKU';
+    const lPrice = getVal('cfg-labelPrice') || 'Price';
+    const summary = getVal('cfg-summaryText') || 'Quote contains';
+    const incPrice = getVal('cfg-includePrices');
+
+    val += lItem + ' 1: Sample Product\n';
+    val += lVariant + ': Medium / Black\n';
+    val += lQty + ': 2\n';
+    if (incPrice) val += lPrice + ': $149.00\n';
+    val += '----------------------\n';
+    val += lItem + ' 2: Another Item\n';
+    val += lVariant + ': Large / White\n';
+    val += lQty + ': 1\n';
+    if (incPrice) val += lPrice + ': $89.00\n';
+    val += '----------------------\n';
+    val += '\n' + summary + ': 3 items.\n';
+  } else {
+    const lTitle = getVal('cfg-labelTitle') || 'Title';
+    const lVariant = getVal('cfg-labelVariant') || 'Variant(s)';
+    const lQty = getVal('cfg-labelQty') || 'Qty';
+    const lPrice = getVal('cfg-labelPrice') || 'Price';
+    const incPrice = getVal('cfg-includePrices');
+    const incUrl = getVal('cfg-includeProductUrl');
+
+    val += lTitle + ': Sample Product\n';
+    val += lVariant + ': Medium / Black\n';
+    val += lQty + ': 1\n';
+    if (incPrice) val += lPrice + ': $149.00\n';
+    if (incUrl) val += 'URL: https://yoursite.com/products/sample-product\n';
+  }
+
+  V('popup-field-value').value = val;
+  V('mockPopup').classList.add('show');
+}
+
+function generateCode() {
+  const cfg = {};
+
+  const fields = [
+    ['mode','quote-cart'], ['cartIconType','cart'], ['fieldName','Cart'],
+    ['addToCartLabel','Add to Quote'], ['quoteBtnLabel','Request Quote'],
+    ['singleEnquiryLabel','Enquire Now'], ['cartPageTitle','Quote List'],
+    ['showAddToCart',false], ['showCheckout',false], ['hidePrice',false],
+    ['filterByTag',false], ['enquiryTag','enquiry'], ['excludeTag',''],
+    ['emptyCartMessage','Your quote list is empty.'],
+    ['returnToShopLabel','Continue browsing'], ['returnToShopLink','/products'],
+    ['includePrices',false], ['includeProductUrl',true],
+    ['labelItem','Item'], ['labelTitle','Title'], ['labelVariant','Variant(s)'],
+    ['labelSku','SKU'], ['labelQty','Qty'], ['labelPrice','Price'],
+    ['summaryText','Quote contains'],
+    ['btnBg','#18181B'], ['btnColor','#FFFFFF'], ['btnRadius',''], ['btnFontSize',''],
+    ['executionDelay',500], ['debugMode',false]
+  ];
+
+  fields.forEach(([key, def]) => {
+    const val = getVal('cfg-' + key);
+    if (typeof def === 'boolean') {
+      if (val !== def) cfg[key] = val;
+    } else if (typeof def === 'number') {
+      const n = parseInt(val, 10);
+      if (!isNaN(n) && n !== def) cfg[key] = n;
+    } else {
+      if (val !== def && val !== '') cfg[key] = val;
+    }
+  });
+
+  // always include mode
+  cfg.mode = getVal('cfg-mode');
+
+  let configStr = 'window.SDL_ENQUIRY_CONFIG = ' + JSON.stringify(cfg, null, 2) + ';';
+
+  const headerCode = '<script>\n' + configStr + '\n<\/script>';
+
+  const footerCode = '<script src="https://cdn.jsdelivr.net/gh/square-design-lab/Product-Enquiry@latest/enquiry.min.js"><\/script>\n<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/square-design-lab/Product-Enquiry@latest/enquiry.min.css">';
+
+  V('code-header').textContent = headerCode;
+  V('code-footer').textContent = footerCode;
+}
+
+function copyCode(id, btn) {
+  const text = V(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy'; }, 1500);
+  });
+}
+
+// init
+update();
+</script>
+</body>
+</html>
