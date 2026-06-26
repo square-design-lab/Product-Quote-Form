@@ -308,7 +308,8 @@
     btns.forEach(function (btn) {
       if (btn.closest(".sqs-product-quick-view-lightbox")) return;
       var wrapper = btn.closest(".sqs-add-to-cart-button-wrapper") || btn.parentElement;
-      if (wrapper.querySelector(".sdl-enquiry-single-btn")) return;
+      var controlsRow = wrapper.closest(".product-purchase-controls-wrapper") || wrapper.parentElement;
+      if (controlsRow.parentElement && controlsRow.parentElement.querySelector(".sdl-enquiry-single-btn")) return;
 
       var enquiryBtn = document.createElement("button");
       enquiryBtn.className = "sqs-editable-button sqs-button-element--primary sdl-enquiry-single-btn";
@@ -322,12 +323,12 @@
         openSingleEnquiryForm();
       });
 
-      if (cfg("showAddToCart")) {
-        wrapper.parentNode.insertBefore(enquiryBtn, wrapper.nextSibling);
-      } else {
+      if (!cfg("showAddToCart")) {
         btn.style.display = "none";
-        wrapper.parentNode.insertBefore(enquiryBtn, wrapper.nextSibling);
       }
+
+      var insertTarget = controlsRow.parentElement || controlsRow;
+      insertTarget.insertBefore(enquiryBtn, controlsRow.nextSibling);
     });
 
     if (cfg("hidePrice")) {
