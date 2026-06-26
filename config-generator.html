@@ -339,13 +339,6 @@ pre {
           </select>
           <p class="helper"><strong>Quote Cart</strong> — replaces checkout with a quote form. <strong>Single Product</strong> — adds enquiry button per product page. <strong>Both</strong> — enables both features.</p>
         </div>
-        <div class="control-row">
-          <label>Cart Icon</label>
-          <select id="cfg-cartIconType" onchange="update()">
-            <option value="cart">Cart (default)</option>
-            <option value="heart">Heart / Wishlist</option>
-          </select>
-        </div>
       </div>
     </div>
 
@@ -431,19 +424,11 @@ pre {
 
     <!-- EMPTY CART -->
     <div class="group" id="wrap-emptyCart">
-      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Empty Cart Messages</div>
+      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Empty Cart Message</div>
       <div class="group-body">
         <div class="control-row">
           <label>Empty Message</label>
           <input type="text" id="cfg-emptyCartMessage" value="Your quote list is empty." oninput="update()">
-        </div>
-        <div class="control-row">
-          <label>Continue Shopping Label</label>
-          <input type="text" id="cfg-returnToShopLabel" value="Continue browsing" oninput="update()">
-        </div>
-        <div class="control-row">
-          <label>Continue Shopping Link</label>
-          <input type="text" id="cfg-returnToShopLink" value="/products" oninput="update()">
         </div>
       </div>
     </div>
@@ -479,29 +464,6 @@ pre {
         <div class="control-row">
           <label>Summary Text</label>
           <input type="text" id="cfg-summaryText" value="Quote contains" oninput="update()">
-        </div>
-      </div>
-    </div>
-
-    <!-- BUTTON STYLE -->
-    <div class="group">
-      <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Button Styling</div>
-      <div class="group-body">
-        <div class="color-row">
-          <span class="color-label">Background</span>
-          <input type="color" id="cfg-btnBg" value="#18181B" oninput="update()">
-        </div>
-        <div class="color-row">
-          <span class="color-label">Text Color</span>
-          <input type="color" id="cfg-btnColor" value="#FFFFFF" oninput="update()">
-        </div>
-        <div class="control-row">
-          <label>Border Radius</label>
-          <input type="text" id="cfg-btnRadius" value="" placeholder="e.g. 4px or 30px" oninput="update()">
-        </div>
-        <div class="control-row">
-          <label>Font Size</label>
-          <input type="text" id="cfg-btnFontSize" value="" placeholder="e.g. 14px" oninput="update()">
         </div>
       </div>
     </div>
@@ -741,10 +703,6 @@ function updatePreview(mode, isCart, isSingle) {
   const singleLabel = getVal('cfg-singleEnquiryLabel') || 'Enquire Now';
   const cartTitle = getVal('cfg-cartPageTitle') || 'Quote List';
   const hidePrice = getVal('cfg-hidePrice');
-  const btnBg = getVal('cfg-btnBg');
-  const btnColor = getVal('cfg-btnColor');
-  const btnRadius = getVal('cfg-btnRadius');
-  const btnFontSize = getVal('cfg-btnFontSize');
 
   // product card
   const addBtn = V('prev-addToCart');
@@ -777,18 +735,6 @@ function updatePreview(mode, isCart, isSingle) {
   V('prev-cartHeader').innerText = cartTitle;
   V('prev-checkoutBtn').style.display = 'none';
   V('prev-quoteBtn').innerText = quoteBtnLabel;
-
-  // button styling
-  [V('prev-quoteBtn'), enquiryBtn].forEach(b => {
-    if (btnBg) b.style.backgroundColor = btnBg;
-    else b.style.backgroundColor = '';
-    if (btnColor) b.style.color = btnColor;
-    else b.style.color = '';
-    if (btnRadius) b.style.borderRadius = btnRadius;
-    else b.style.borderRadius = '';
-    if (btnFontSize) b.style.fontSize = btnFontSize;
-    else b.style.fontSize = '';
-  });
 
   // wire up preview click for popup
   enquiryBtn.onclick = () => showMockPopup('single');
@@ -843,18 +789,16 @@ function generateCode() {
   const cfg = {};
 
   const fields = [
-    ['mode','quote-cart'], ['cartIconType','cart'], ['fieldName','Cart'],
+    ['mode','quote-cart'], ['fieldName','Cart'],
     ['addToCartLabel','Add to Quote'], ['quoteBtnLabel','Request Quote'],
     ['singleEnquiryLabel','Enquire Now'], ['cartPageTitle','Quote List'],
     ['hidePrice',false],
     ['filterByTag',false], ['enquiryTag','enquiry'], ['excludeTag',''],
     ['emptyCartMessage','Your quote list is empty.'],
-    ['returnToShopLabel','Continue browsing'], ['returnToShopLink','/products'],
     ['includePrices',false], ['includeProductUrl',true],
     ['labelItem','Item'], ['labelTitle','Title'], ['labelVariant','Variant(s)'],
     ['labelSku','SKU'], ['labelQty','Qty'], ['labelPrice','Price'],
     ['summaryText','Quote contains'],
-    ['btnBg','#18181B'], ['btnColor','#FFFFFF'], ['btnRadius',''], ['btnFontSize',''],
     ['executionDelay',500]
   ];
 
@@ -872,8 +816,6 @@ function generateCode() {
 
   // remove empty optional strings
   if (!cfg.excludeTag) delete cfg.excludeTag;
-  if (!cfg.btnRadius) delete cfg.btnRadius;
-  if (!cfg.btnFontSize) delete cfg.btnFontSize;
 
   // remove tag settings when filtering is disabled
   if (!cfg.filterByTag) {

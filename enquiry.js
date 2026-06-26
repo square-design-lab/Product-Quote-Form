@@ -8,7 +8,6 @@
   /* ── defaults ─────────────────────────────────────────────────────────── */
   var D = {
     mode: "quote-cart",
-    cartIconType: "cart",
     fieldName: "Cart",
 
     addToCartLabel: "Add to Quote",
@@ -23,8 +22,6 @@
     excludeTag: "",
 
     emptyCartMessage: "Your quote list is empty.",
-    returnToShopLabel: "Continue browsing",
-    returnToShopLink: "/products",
 
     includePrices: false,
     includeProductUrl: true,
@@ -36,11 +33,6 @@
     labelPrice: "Price",
     labelTotal: "Total",
     summaryText: "Quote contains",
-
-    btnBg: "",
-    btnColor: "",
-    btnRadius: "",
-    btnFontSize: "",
 
     executionDelay: 500,
     debugMode: false
@@ -162,11 +154,40 @@
     return false;
   }
 
-  function applyBtnStyle(btn) {
-    if (cfg("btnBg")) btn.style.backgroundColor = cfg("btnBg");
-    if (cfg("btnColor")) btn.style.color = cfg("btnColor");
-    if (cfg("btnRadius")) btn.style.borderRadius = cfg("btnRadius");
-    if (cfg("btnFontSize")) btn.style.fontSize = cfg("btnFontSize");
+  var _nativeBtnStyles = null;
+
+  function captureNativeButtonStyles() {
+    if (_nativeBtnStyles) return;
+    var nativeBtn = document.querySelector(S.addToCartBtn);
+    if (!nativeBtn) return;
+    var cs = window.getComputedStyle(nativeBtn);
+    _nativeBtnStyles = {
+      backgroundColor: cs.backgroundColor,
+      color: cs.color,
+      borderRadius: cs.borderRadius,
+      fontSize: cs.fontSize,
+      fontFamily: cs.fontFamily,
+      fontWeight: cs.fontWeight,
+      letterSpacing: cs.letterSpacing,
+      textTransform: cs.textTransform,
+      padding: cs.padding,
+      border: cs.border
+    };
+  }
+
+  function applyNativeStyle(btn) {
+    if (!_nativeBtnStyles) return;
+    var s = _nativeBtnStyles;
+    btn.style.backgroundColor = s.backgroundColor;
+    btn.style.color = s.color;
+    btn.style.borderRadius = s.borderRadius;
+    btn.style.fontSize = s.fontSize;
+    btn.style.fontFamily = s.fontFamily;
+    btn.style.fontWeight = s.fontWeight;
+    btn.style.letterSpacing = s.letterSpacing;
+    btn.style.textTransform = s.textTransform;
+    btn.style.padding = s.padding;
+    btn.style.border = s.border;
   }
 
   function getProductTitle() {
@@ -194,23 +215,6 @@
   function getCurrentPrice() {
     var el = document.querySelector(".product-price, .sqs-money-native");
     return el ? el.innerText.trim() : "";
-  }
-
-  /* ── heart icon replacement ───────────────────────────────────────────── */
-  function replaceCartIcons() {
-    var heartPath = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
-    document.querySelectorAll("svg.icon--cart, svg.Icon--cart").forEach(function (icon) {
-      icon.classList.add("sdl-wishlist-icon");
-      while (icon.firstChild) icon.removeChild(icon.firstChild);
-      var p = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      p.setAttribute("d", heartPath);
-      var c = "currentColor";
-      var qty = icon.parentElement && icon.parentElement.querySelector(".icon-cart-quantity");
-      if (qty) c = window.getComputedStyle(qty).color;
-      p.setAttribute("fill", c);
-      icon.appendChild(p);
-      icon.setAttribute("viewBox", "0 0 24 24");
-    });
   }
 
   /* ── rename add-to-cart on store/listing pages ────────────────────────── */
@@ -363,7 +367,7 @@
       enquiryBtn.className = "sqs-editable-button sqs-button-element--primary sdl-enquiry-single-btn";
       enquiryBtn.type = "button";
       enquiryBtn.innerText = cfg("singleEnquiryLabel");
-      applyBtnStyle(enquiryBtn);
+      applyNativeStyle(enquiryBtn);
 
       enquiryBtn.addEventListener("click", function (e) {
         e.preventDefault();
@@ -433,11 +437,6 @@
     waitFor(S.emptyMessage, function () {
       var msg = document.querySelector(S.emptyMessage);
       if (msg) msg.innerText = cfg("emptyCartMessage");
-      var cont = document.querySelector(S.emptyContinueBtn);
-      if (cont) {
-        cont.innerText = cfg("returnToShopLabel");
-        cont.href = cfg("returnToShopLink");
-      }
       var chk = document.querySelector(S.cartCheckoutBtn);
       if (chk) chk.style.display = "none";
     });
@@ -453,7 +452,7 @@
       btn.className = "sqs-editable-button sqs-button-element--primary cart-checkout-button sdl-quote-btn";
       btn.type = "button";
       btn.innerText = cfg("quoteBtnLabel");
-      applyBtnStyle(btn);
+      applyNativeStyle(btn);
 
       btn.addEventListener("click", function (e) {
         e.preventDefault();
@@ -588,10 +587,10 @@
 
     injectStyles();
 
+    captureNativeButtonStyles();
+
     var trigger = document.querySelector(S.footerLightbox);
     if (trigger) trigger.classList.add("sdl-hidden");
-
-    if (cfg("cartIconType") === "heart") replaceCartIcons();
 
     var mode = cfg("mode");
 

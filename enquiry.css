@@ -29,5 +29,3 @@ footer .lightbox-handle.sdl-hidden { display: none !important; }
 }
 .sdl-quote-btn:hover { opacity: .85; }
 
-/* ── wishlist heart icon ────────────────────────────────────────────────── */
-.sdl-wishlist-icon path { transition: fill .2s ease; }
