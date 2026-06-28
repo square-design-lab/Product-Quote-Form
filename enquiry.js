@@ -9,7 +9,7 @@
   var D = {
     mode: "quote-cart",
     fieldName: "Cart",
-    formPageUrl: "",
+    formPageUrl: "/enquiry-form",
 
     addToCartLabel: "Add to Quote",
     quoteBtnLabel: "Request Quote",
@@ -491,7 +491,7 @@
 
     var content = document.createElement("div");
     content.className = "sdl-form-content";
-    content.innerHTML = '<p style="text-align:center;color:#999;padding:40px 0">Loading form…</p>';
+    content.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;padding:60px 0"><div class="sdl-form-spinner"></div></div>';
 
     popup.appendChild(closeBtn);
     popup.appendChild(content);

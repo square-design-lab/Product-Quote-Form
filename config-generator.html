@@ -408,7 +408,7 @@ pre {
       <div class="group-body">
         <div class="control-row">
           <label>Form Page URL</label>
-          <input type="text" id="cfg-formPageUrl" value="" placeholder="/enquiry-form" oninput="update()">
+          <input type="text" id="cfg-formPageUrl" value="/enquiry-form" oninput="update()">
           <p class="helper">URL of a page containing your enquiry form. The form will open in a popup. Leave empty to use the footer lightbox approach instead.</p>
         </div>
         <div class="control-row">
@@ -794,7 +794,7 @@ function generateCode() {
   const cfg = {};
 
   const fields = [
-    ['mode','quote-cart'], ['formPageUrl',''], ['fieldName','Cart'],
+    ['mode','quote-cart'], ['formPageUrl','/enquiry-form'], ['fieldName','Cart'],
     ['addToCartLabel','Add to Quote'], ['quoteBtnLabel','Request Quote'],
     ['singleEnquiryLabel','Enquire Now'], ['cartPageTitle','Quote List'],
     ['hidePrice',false],

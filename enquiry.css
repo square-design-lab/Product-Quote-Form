@@ -37,6 +37,14 @@
   box-sizing: content-box !important;
 }
 .sdl-form-close:hover { color: #000; }
+.sdl-form-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid #e5e5e5;
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: sdl-spin .7s linear infinite;
+}
+@keyframes sdl-spin { to { transform: rotate(360deg); } }
 
 /* ── hide lightbox trigger ──────────────────────────────────────────────── */
 footer .lightbox-handle.sdl-hidden { display: none !important; }
