@@ -1,4 +1,42 @@
-/* SDL Product Enquiry v1.0 | square-design-lab */
+/* SDL Product Enquiry v1.1 | square-design-lab */
+
+/* ── form popup overlay (page-pulling approach) ────────────────────────── */
+.sdl-form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+.sdl-form-popup {
+  background: #fff;
+  border-radius: 4px;
+  padding: 40px 36px 36px;
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.sdl-form-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none !important;
+  border: none !important;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+  padding: 4px !important;
+  line-height: 1;
+  z-index: 1;
+  box-sizing: content-box !important;
+}
+.sdl-form-close:hover { color: #000; }
 
 /* ── hide lightbox trigger ──────────────────────────────────────────────── */
 footer .lightbox-handle.sdl-hidden { display: none !important; }

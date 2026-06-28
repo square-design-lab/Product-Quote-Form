@@ -1,4 +1,4 @@
-/* SDL Product Enquiry v1.0 | square-design-lab */
+/* SDL Product Enquiry v1.1 | square-design-lab */
 (function () {
   if (window.__SDL_ENQUIRY_LOADED) return;
   window.__SDL_ENQUIRY_LOADED = true;
@@ -9,6 +9,7 @@
   var D = {
     mode: "quote-cart",
     fieldName: "Cart",
+    formPageUrl: "",
 
     addToCartLabel: "Add to Quote",
     quoteBtnLabel: "Request Quote",
@@ -349,6 +350,180 @@
     }
   }
 
+  /* ── bundled sdl$ content-pulling utilities ────────────────────────────── */
+  var sdl = (function () {
+    function safe(fn) { try { return fn(); } catch (e) { console.warn("[SDL]", e); } }
+
+    function getFragment(url) {
+      var fetchUrl = url + (url.indexOf("?") !== -1 ? "&" : "?") + "format=html";
+      return fetch(fetchUrl, { credentials: "same-origin", cache: "no-store" })
+        .then(function (res) {
+          if (!res.ok) throw new Error("Fetch failed: " + res.status);
+          return res.text();
+        })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, "text/html");
+          var found = doc.querySelector("#sections") ||
+            doc.querySelector('[data-content-field="main-content"]') ||
+            doc.querySelector("#page") || doc.body;
+          if (!found) throw new Error("No content found at " + url);
+          var node = document.importNode(found, true);
+          var themeStyles = doc.querySelector("#sectionThemesStyles");
+          if (themeStyles) {
+            var clone = document.importNode(themeStyles, true);
+            clone.removeAttribute("id");
+            clone.className = "sdl-section-themes";
+            node.appendChild(clone);
+          }
+          return node;
+        });
+    }
+
+    function executeScripts(container) {
+      if (!container) return Promise.resolve();
+      var scripts = [];
+      container.querySelectorAll("script:not([data-sdl-ran])").forEach(function (s) {
+        var t = s.getAttribute("type");
+        if (!t || t === "text/javascript" || t === "application/javascript") scripts.push(s);
+      });
+      return scripts.reduce(function (chain, old) {
+        return chain.then(function () {
+          return new Promise(function (resolve) {
+            var script = document.createElement("script");
+            Array.from(old.attributes).forEach(function (a) { script.setAttribute(a.name, a.value); });
+            script.setAttribute("data-sdl-ran", "");
+            if (old.src) {
+              var done = false;
+              var finish = function () { if (!done) { done = true; resolve(); } };
+              script.onload = script.onerror = finish;
+              setTimeout(finish, 5000);
+              script.src = old.src;
+              old.parentNode.replaceChild(script, old);
+            } else {
+              script.textContent = old.textContent || "";
+              old.parentNode.replaceChild(script, old);
+              resolve();
+            }
+          });
+        });
+      }, Promise.resolve());
+    }
+
+    function loadImages(el) {
+      var loader = window.ImageLoader || (window.Squarespace && window.Squarespace.ImageLoader);
+      if (!loader || typeof loader.load !== "function") return;
+      (el || document).querySelectorAll("img[data-src], img:not([src])").forEach(function (img) {
+        safe(function () { loader.load(img, { load: true }); });
+        img.classList.add("loaded");
+      });
+    }
+
+    function reinitializeForms(scope) {
+      if (!scope) return;
+      var Y = window.Y;
+      var Sqs = window.Squarespace;
+      if (!Y || !Sqs) return;
+      if (typeof Sqs.initializeWebsiteComponent === "function") {
+        safe(function () { Sqs.initializeWebsiteComponent(Y); });
+      }
+      if (typeof Sqs.initializeFormBlocks === "function") {
+        safe(function () { Sqs.initializeFormBlocks(Y, Y); });
+      }
+    }
+
+    return { getFragment: getFragment, executeScripts: executeScripts, loadImages: loadImages, reinitializeForms: reinitializeForms };
+  })();
+
+  /* ── form popup (page-pulling approach) ──────────────────────────────── */
+  function findTextareaByLabel(scope, fieldName) {
+    var labels = scope.querySelectorAll("label.title");
+    var i, parent, ta;
+    for (i = 0; i < labels.length; i++) {
+      if (labels[i].textContent.trim().toLowerCase() === fieldName.toLowerCase()) {
+        parent = labels[i].parentElement;
+        ta = parent ? parent.querySelector("textarea") : null;
+        if (ta) return ta;
+      }
+    }
+    labels = scope.querySelectorAll("label");
+    for (i = 0; i < labels.length; i++) {
+      if (labels[i].textContent.trim().toLowerCase().indexOf(fieldName.toLowerCase()) !== -1) {
+        var forId = labels[i].getAttribute("for");
+        if (forId) {
+          var byId = scope.querySelector("#" + CSS.escape(forId));
+          if (byId && byId.tagName === "TEXTAREA") return byId;
+        }
+        parent = labels[i].closest(".form-item, .field-element, .form-field");
+        ta = parent ? parent.querySelector("textarea") : null;
+        if (ta) return ta;
+      }
+    }
+    return null;
+  }
+
+  function openFormPopup(fillCallback) {
+    var formUrl = cfg("formPageUrl");
+
+    if (!formUrl) {
+      var trigger = document.querySelector(S.footerLightbox);
+      if (!trigger) { log("Footer lightbox handle not found"); return; }
+      trigger.click();
+      setTimeout(function () {
+        var area = findFormTextarea();
+        if (area) fillCallback(area);
+      }, cfg("executionDelay"));
+      return;
+    }
+
+    var existing = document.querySelector(".sdl-form-overlay");
+    if (existing) existing.remove();
+
+    var overlay = document.createElement("div");
+    overlay.className = "sdl-form-overlay";
+
+    var popup = document.createElement("div");
+    popup.className = "sdl-form-popup";
+
+    var closeBtn = document.createElement("button");
+    closeBtn.className = "sdl-form-close";
+    closeBtn.innerHTML = "&times;";
+    closeBtn.addEventListener("click", function () { overlay.remove(); });
+
+    var content = document.createElement("div");
+    content.className = "sdl-form-content";
+    content.innerHTML = '<p style="text-align:center;color:#999;padding:40px 0">Loading form…</p>';
+
+    popup.appendChild(closeBtn);
+    popup.appendChild(content);
+    overlay.appendChild(popup);
+
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) overlay.remove();
+    });
+
+    document.addEventListener("keydown", function onEsc(e) {
+      if (e.key === "Escape") { overlay.remove(); document.removeEventListener("keydown", onEsc); }
+    });
+
+    document.body.appendChild(overlay);
+
+    sdl.getFragment(formUrl).then(function (node) {
+      content.innerHTML = "";
+      content.appendChild(node);
+      return sdl.executeScripts(content);
+    }).then(function () {
+      sdl.loadImages(content);
+      sdl.reinitializeForms(content);
+      setTimeout(function () {
+        var ta = findTextareaByLabel(content, cfg("fieldName"));
+        if (ta) fillCallback(ta);
+      }, 800);
+    }).catch(function (err) {
+      content.innerHTML = '<p style="padding:20px;color:#c00">Failed to load form. Please try again.</p>';
+      console.error("[SDL Enquiry] Form load error:", err);
+    });
+  }
+
   /* ── single-product enquiry ───────────────────────────────────────────── */
   function setupSingleProductEnquiry() {
     if (!isProductPage()) return;
@@ -389,27 +564,20 @@
   }
 
   function openSingleEnquiryForm() {
-    var trigger = document.querySelector(S.footerLightbox);
-    if (!trigger) { log("Footer lightbox handle not found"); return; }
-    trigger.click();
-    setTimeout(function () { fillSingleProductData(); }, cfg("executionDelay"));
-  }
-
-  function fillSingleProductData() {
-    var area = findFormTextarea();
-    if (!area) return;
-    var data = "";
-    data += cfg("labelTitle") + ": " + getProductTitle() + "\n";
-    var variants = getSelectedVariants();
-    if (variants) data += cfg("labelVariant") + ": " + variants + "\n";
-    var qty = getSelectedQty();
-    data += cfg("labelQty") + ": " + qty + "\n";
-    if (cfg("includePrices")) {
-      var price = getCurrentPrice();
-      if (price) data += cfg("labelPrice") + ": " + price + "\n";
-    }
-    if (cfg("includeProductUrl")) data += "URL: " + window.location.origin + window.location.pathname + "\n";
-    triggerReact(area, data);
+    openFormPopup(function (area) {
+      var data = "";
+      data += cfg("labelTitle") + ": " + getProductTitle() + "\n";
+      var variants = getSelectedVariants();
+      if (variants) data += cfg("labelVariant") + ": " + variants + "\n";
+      var qty = getSelectedQty();
+      data += cfg("labelQty") + ": " + qty + "\n";
+      if (cfg("includePrices")) {
+        var price = getCurrentPrice();
+        if (price) data += cfg("labelPrice") + ": " + price + "\n";
+      }
+      if (cfg("includeProductUrl")) data += "URL: " + window.location.origin + window.location.pathname + "\n";
+      triggerReact(area, data);
+    });
   }
 
   /* ── quick-view support ───────────────────────────────────────────────── */
@@ -464,21 +632,13 @@
   }
 
   function openCartQuoteForm() {
-    var trigger = document.querySelector(S.footerLightbox);
-    if (!trigger) { log("Footer lightbox handle not found"); return; }
-    trigger.click();
-    setTimeout(function () { fillCartData(); }, cfg("executionDelay"));
-  }
-
-  function fillCartData() {
-    var area = findFormTextarea();
-    if (!area) return;
-
-    if (cfg("filterByTag")) {
-      fillCartDataFiltered(area);
-    } else {
-      fillCartDataAll(area);
-    }
+    openFormPopup(function (area) {
+      if (cfg("filterByTag")) {
+        fillCartDataFiltered(area);
+      } else {
+        fillCartDataAll(area);
+      }
+    });
   }
 
   function fillCartDataAll(area) {

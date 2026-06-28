@@ -322,7 +322,7 @@ pre {
 <div class="sidebar">
   <div class="sidebar-header">
     <h2><span class="brand-icon">✉</span> Product Enquiry</h2>
-    <span class="badge">v1.0</span>
+    <span class="badge">v1.1</span>
   </div>
   <div class="sidebar-content">
 
@@ -407,9 +407,14 @@ pre {
       <div class="group-header" onclick="this.parentElement.classList.toggle('open')">Form Settings</div>
       <div class="group-body">
         <div class="control-row">
+          <label>Form Page URL</label>
+          <input type="text" id="cfg-formPageUrl" value="" placeholder="/enquiry-form" oninput="update()">
+          <p class="helper">URL of a page containing your enquiry form. The form will open in a popup. Leave empty to use the footer lightbox approach instead.</p>
+        </div>
+        <div class="control-row">
           <label>Form Field Label</label>
           <input type="text" id="cfg-fieldName" value="Cart" oninput="update()">
-          <p class="helper">Must match the label of the textarea field in your footer lightbox form.</p>
+          <p class="helper">Must match the label of the textarea field in your form block.</p>
         </div>
         <div class="toggle-row">
           <label>Include prices in form data</label>
@@ -575,8 +580,8 @@ pre {
         <div class="step">
           <div class="step-num">1</div>
           <div class="step-content">
-            <h4>Create the Lightbox Form</h4>
-            <p>Go to your Squarespace site editor. Open the <strong>Footer</strong> section. Add a <strong>Form Block</strong> and set it to open as a <strong>Lightbox</strong>. Design the form with the fields you want (Name, Email, Phone, Message, etc.). Add one <strong>Textarea</strong> field and set its label to match the <code>Form Field Label</code> setting in the config (default: <code>Cart</code>). This field will be auto-filled with product/cart data. You may want to hide this field with CSS later.</p>
+            <h4>Create the Enquiry Form</h4>
+            <p>Create a new page (e.g. <code>/enquiry-form</code>) and add a <strong>Form Block</strong> to it. Design the form with the fields you want (Name, Email, Phone, Message, etc.). Add one <strong>Textarea</strong> field and set its label to match the <code>Form Field Label</code> setting (default: <code>Cart</code>). Enter the page URL in the <em>Form Page URL</em> setting. The form will load in a popup when users click the enquiry button. <em>Alternatively</em>, leave Form Page URL empty and add the form to your site footer as a lightbox (legacy approach).</p>
           </div>
         </div>
 
@@ -789,7 +794,7 @@ function generateCode() {
   const cfg = {};
 
   const fields = [
-    ['mode','quote-cart'], ['fieldName','Cart'],
+    ['mode','quote-cart'], ['formPageUrl',''], ['fieldName','Cart'],
     ['addToCartLabel','Add to Quote'], ['quoteBtnLabel','Request Quote'],
     ['singleEnquiryLabel','Enquire Now'], ['cartPageTitle','Quote List'],
     ['hidePrice',false],
